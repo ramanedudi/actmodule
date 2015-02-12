@@ -1,0 +1,44 @@
+<?php $_product = $this->getProduct(); ?>
+<?php if ($_product) : ?>
+<?php if ($this->allowBidding($_product)) : ?>
+	<?php $bids = $this->getBidCount($_product); ?>
+	
+	<div class="product-confirm-bid">
+		<ul>
+			<li>
+				<span id="countdown-confirm"></span> | <span>[<?php echo $bids . ' Bids';?>]</span> 
+			</li>
+			<li>
+				<h3><?php echo $this->__('Current Bid'); ?>
+	            <?php echo Mage::helper('core')->currency($_product->getPrice(), true, false); //echo $this->getTierPriceHtml() ?>
+	            </h3>
+	        </li>
+	        <li>
+	        	<?php $postData = $this->getRequest()->getPost();?>
+	        	<form id="confirm-bid-form" method="post" action="<?php echo $this->getSubmitUrl(); ?>">
+	        		<input type="text" name="confirmbidamount" value="<?php echo $postData['bidamount']; ?>" />
+	        		<input type="hidden" name="product_id" value="<?php echo $_product->getId(); ?>" />
+	        		<button onclick="confirmBid('confirm-bid-form')" class="button btn-cart" title="Confirm Bid" type="button">
+	        			<span><span>Confirm Bid</span></span>
+	        		</button>
+	        	</form>
+	        </li>
+		</ul>
+	</div>
+	<script type="text/javascript">
+	<?php $date = strtotime($_product->getAuctionEndTime()) * 1000; ?>
+	var newYear = new Date();
+	newYear = new Date(<?php echo $date; ?>);
+	jQuery('#countdown-confirm').countdown({until: newYear});
+	
+	Event.observe('confirm-bid-form', 'submit', function(event) {
+	    Event.stop(event);
+	    confirmBid('confirm-bid-form');
+	});
+	</script>
+<?php else: ?>
+<div class="product-confirm-bid">
+	<p>Bidding is not allowed until next Bid appears</p>
+</div>
+<?php endif;?>
+<?php endif;?>

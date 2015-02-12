@@ -1,0 +1,45 @@
+<?php $collection = $this->getBidders(); ?>
+<?php if ($collection) :?>
+<div id="auction-bidders">
+<table width="100%" border="1">
+<tbody>
+	<tr>
+	<th>Sr. No.</th>
+	<th>Bid Id</th>
+	<th>Customer Id</th>
+	<th>Customer Email</th>
+	<th>Bidding Amount</th>
+	<th>Last Bid At</th>
+	<th>Status</th>
+	</tr>
+	<?php $i=1; foreach($collection as $_bid) : ?>
+	<tr>
+	<td><?php echo $i++; ?></td>
+	<td><?php echo $_bid->getBidId(); ?></td>
+	<td><?php echo $_bid->getCustomerId(); ?></td>
+	<td><?php echo $_bid->getEmail(); ?></td>
+	<td><?php echo Mage::helper('core')->currency($_bid->getBidAmount(), true, false); ?>
+	<td><?php echo $_bid->getCreatedAt(); ?></td>
+	<td><?php if($_bid->getStatus() ==1) { echo 'WON'; } else { echo '--'; } ?></td>
+	<?php endforeach; ?>
+</tbody>
+</table>
+</div>
+<?php endif; ?>
+<style>
+#auction-bidders table {
+    border-collapse: collapse;
+     width: 100%;
+}
+
+#auction-bidders table, th, td {
+    border: 1px solid #ccc;
+}
+#auction-bidders th {
+    height: 50px;
+    background-color: #EB5E3A;
+    color: white;
+    text-align: center;
+    vertical-align: middle;
+} 
+</style>

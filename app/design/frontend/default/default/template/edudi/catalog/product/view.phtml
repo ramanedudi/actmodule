@@ -1,0 +1,311 @@
+<?php
+/**
+ * Product view template
+ *
+ * @see Mage_Catalog_Block_Product_View
+ * @see Mage_Review_Block_Product_View
+ */
+?>
+<?php $_helper = $this->helper('catalog/output'); ?>
+<?php $auctionHelper = $this->helper('edudi_auction'); ?>
+<?php
+if (!Mage::helper('customer')->isLoggedIn()) {
+	Mage::getSingleton('customer/session')->setBeforeAuthUrl($this->helper('core/url')->getCurrentUrl());
+}
+?>
+<?php $_product = $this->getProduct(); ?>
+<script type="text/javascript">
+    var optionsPrice = new Product.OptionsPrice(<?php echo $this->getJsonConfig() ?>);
+</script>
+<div id="messages_product_view"><?php echo $this->getMessagesBlock()->getGroupedHtml() ?></div>
+<div class="product-view">
+    <div class="product-essential">
+    <form action="<?php echo $auctionHelper->getSubmitUrl($_product) ?>" method="post" id="product_addtocart_form"<?php if($_product->getOptions()): ?> enctype="multipart/form-data"<?php endif; ?>>
+        <?php echo $this->getBlockHtml('formkey') ?>
+        <div class="no-display">
+            <input type="hidden" name="product" value="<?php echo $_product->getId() ?>" />
+            <input type="hidden" name="related_product" id="related-products-field" value="" />
+        </div>
+
+        <div class="product-shop">
+            <div class="product-name">
+                <h1><?php echo $_helper->productAttribute($_product, $_product->getName(), 'name') ?></h1>
+            </div>
+
+            <?php if ($this->canEmailToFriend()): ?>
+                <p class="email-friend"><a href="<?php echo $this->helper('catalog/product')->getEmailToFriendUrl($_product) ?>"><?php echo $this->__('Email to a Friend') ?></a></p>
+            <?php endif; ?>
+
+            <?php echo $this->getReviewsSummaryHtml($_product, false, true)?>
+            <?php echo $this->getChildHtml('alert_urls') ?>
+            <?php //echo $this->getChildHtml('product_type_data') ?>
+            <?php echo $this->getChildHtml('extrahint') ?>
+			<div class="timer-count">
+			<span>Time Left : </span>
+			<span id="countdown"></span>
+			</div>
+            <?php if (!$this->hasOptions()):?>
+                <div class="add-to-box">
+                    <?php if($_product->isSaleable()): ?>
+                    	<li>
+						<h3><?php echo $this->__('Current Bid'); ?>
+            				<span id="current_bid_price"><?php echo Mage::helper('core')->currency($_product->getPrice(), true, false); //echo $this->getTierPriceHtml() ?></span>
+            			</h3>
+            			</li>
+            			<li>
+						<input type="text" name="bidamount" id="qty" maxlength="12" title="<?php echo $this->__('Bid Amount') ?>" class="input-text qty" />
+						<span>Enter <span id="new_bid_price"><?php echo Mage::helper('core')->currency(($_product->getPrice() + 25), true, false); ?></span> or more</span>
+						</li>
+						<li>
+							<?php $buttonTitle = $this->__('Place Bid'); ?>
+							<button type="button" title="<?php echo $buttonTitle ?>" class="button btn-cart" onclick="checkUserLogin();"><span><span><?php echo $buttonTitle ?></span></span></button>
+						</li>
+                    <?php endif; ?>
+                    <li>
+                    <?php echo $this->getChildHtml('addto') ?>
+                    </li>
+                </div>
+                <?php echo $this->getChildHtml('extra_buttons') ?>
+            <?php elseif (!$_product->isSaleable()): ?>
+                <div class="add-to-box">
+                    <?php echo $this->getChildHtml('addto') ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($_product->getShortDescription()):?>
+                <div class="short-description">
+                    <h2><?php echo $this->__('Quick Overview') ?></h2>
+                    <div class="std"><?php echo $_helper->productAttribute($_product, nl2br($_product->getShortDescription()), 'short_description') ?></div>
+                </div>
+            <?php endif;?>
+
+            <?php echo $this->getChildHtml('other');?>
+
+            <?php if ($_product->isSaleable() && $this->hasOptions()):?>
+                <?php echo $this->getChildChildHtml('container1', '', true, true) ?>
+            <?php endif;?>
+
+        </div>
+
+        <div class="product-img-box">
+            <?php echo $this->getChildHtml('media') ?>
+        </div>
+
+        <div class="clearer"></div>
+        <?php if ($_product->isSaleable() && $this->hasOptions()):?>
+            <?php echo $this->getChildChildHtml('container2', '', true, true) ?>
+        <?php endif;?>
+    </form>
+    <div id="confirmation-page"></div>
+    <div id="blackscreen"></div>
+    <div id="ajaxloader"></div>
+    <script type="text/javascript">
+    //<![CDATA[
+        var productAddToCartForm = new VarienForm('product_addtocart_form');
+        productAddToCartForm.submit = function(button, url) {
+            if (this.validator.validate()) {
+                var form = this.form;
+                var oldUrl = form.action;
+
+                if (url) {
+                   form.action = url;
+                }
+                var e = null;
+                try {
+                    this.form.submit();
+                } catch (e) {
+                }
+                this.form.action = oldUrl;
+                if (e) {
+                    throw e;
+                }
+
+                if (button && button != 'undefined') {
+                    button.disabled = true;
+                }
+            }
+        }.bind(productAddToCartForm);
+
+        productAddToCartForm.submitLight = function(button, url){
+            if(this.validator) {
+                var nv = Validation.methods;
+                delete Validation.methods['required-entry'];
+                delete Validation.methods['validate-one-required'];
+                delete Validation.methods['validate-one-required-by-name'];
+                // Remove custom datetime validators
+                for (var methodName in Validation.methods) {
+                    if (methodName.match(/^validate-datetime-.*/i)) {
+                        delete Validation.methods[methodName];
+                    }
+                }
+
+                if (this.validator.validate()) {
+                    if (url) {
+                        this.form.action = url;
+                    }
+                    this.form.submit();
+                }
+                Object.extend(Validation.methods, nv);
+            }
+        }.bind(productAddToCartForm);
+
+
+        productAddToCartForm.submitAjax = function(button, url) {
+            jQuery('#blackscreen').show();
+            jQuery('#ajaxloader').show();
+        	if (this.validator.validate()) {
+            	new Ajax.Request(this.form.action, {
+        			  method:'post',
+        			  parameters: this.form.serialize(),
+        			  onSuccess: function(transport) {
+            			var response = transport.responseText || "no response text";
+						jQuery('#confirmation-page').fadeIn(1000);
+        			    $('confirmation-page').update(response);
+        			    jQuery('#ajaxloader').hide();
+        			  },
+        			  onFailure: function() { alert('Something went wrong...'); }
+        			});
+        }
+        }.bind(productAddToCartForm);
+
+        Event.observe('product_addtocart_form', 'submit', function(event) {
+            Event.stop(event);
+            checkUserLogin();
+        });
+
+        jQuery('#blackscreen').click(function(){
+			jQuery('#confirmation-page').fadeOut();
+			jQuery('#blackscreen').hide();
+        });
+
+        <?php $date = strtotime($_product->getAuctionEndTime()) * 1000; ?>
+        var newYear = new Date();
+        newYear = new Date(<?php echo $date; ?>);
+        jQuery('#countdown').countdown({until: newYear});
+
+        function confirmBid(formid)
+        {
+        	jQuery('#ajaxloader').show();
+            form = jQuery('#'+formid);
+        		new Ajax.Request(form.attr('action'), {
+        			  method:'post',
+        			  parameters: form.serialize(),
+        			  onSuccess: function(transport) {
+        				  jQuery('#ajaxloader').hide();
+        			    var json = transport.responseText.evalJSON();
+        			    if (json.returnUrl) {
+        			    	window.location.href = json.returnUrl;
+        			    } else {
+	        				jQuery('#confirmation-page').fadeIn(1000);
+	        			    alert(json.msg);
+							if (json.status === true) {
+								window.location.reload()
+							}
+        			    }
+        			  },
+        			  onFailure: function() { alert('Something went wrong...'); jQuery('#ajaxloader').hide(); }
+        			});
+        }
+
+        function checkUserLogin()
+        {
+        	jQuery('#ajaxloader').show();
+        	new Ajax.Request('<?php echo $auctionHelper->getLoginCheckUrl(); ?>', {
+    			  method:'post',
+    			  onSuccess: function(transport) {
+    				  jQuery('#ajaxloader').hide();
+        			var json = transport.responseText.evalJSON();
+        			if(json == true) {
+        				productAddToCartForm.submitAjax($('product_addtocart_form'));
+        			} else {
+						window.location.href = json;
+        			}
+    			  },
+    			  onFailure: function() { alert('Something went wrong...'); }
+    		});
+        }
+
+        (function checkBiddingUpdates() {
+        	new Ajax.Request('<?php echo $auctionHelper->getBiddingUpdates(); ?>', {
+  			  method:'post',
+  			  parameters: {product_id:'<?php echo $_product->getId(); ?>'},
+  			  onSuccess: function(transport) {
+      			var json = transport.responseText.evalJSON();
+      			$('current_bid_price').update(json.price);
+      			$('new_bid_price').update(json.bidprice);
+  			  },
+  			  onComplete: function() { setTimeout(checkBiddingUpdates, 2000); }
+  			});
+        })();
+    //]]>
+    </script>
+    </div>
+
+    <div class="product-collateral">
+<?php foreach ($this->getChildGroup('detailed_info', 'getChildHtml') as $alias => $html):?>
+        <div class="box-collateral <?php echo "box-{$alias}"?>">
+            <?php if ($title = $this->getChildData($alias, 'title')):?>
+            <h2><?php echo $this->escapeHtml($title); ?></h2>
+            <?php endif;?>
+            <?php echo $html; ?>
+        </div>
+<?php endforeach;?>
+        <?php echo $this->getChildHtml('upsell_products') ?>
+        <?php echo $this->getChildHtml('product_additional_data') ?>
+    </div>
+</div>
+<style type="text/css">
+#blackscreen {
+    background-color: #333;
+    height: 100%;
+    left: 0;
+    opacity: 0.5;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 99;
+    display: none;
+}
+#confirmation-page {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 3px 5px 4px #ccc;
+    left: 25%;
+    margin: 0 auto;
+    min-width: 500px;
+    padding: 10px;
+    position: absolute;
+    width: auto;
+    z-index: 9999;
+    display: none;
+}
+#countdown span {
+	padding: 1px !important;
+	color: #8B0317 !important;
+}
+#countdown-confirm span {
+	padding: 1px !important;
+	color: #8B0317 !important;
+}
+.add-to-box li {
+	padding: 4px;
+	list-style: none;
+}
+
+.add-to-box .input-text.qty {
+    padding: 5px;
+    width: 100px !important;
+}
+#ajaxloader {
+	background-image: url(<?php echo $this->getSkinUrl('images/ajax-loader.gif'); ?>);
+    background-position: center center;
+    background-repeat: no-repeat;
+    height: 188px;
+    width: 260px;
+    position: absolute;
+    left: 35%;
+    z-index: 9999;
+    display: none;
+}
+</style>
