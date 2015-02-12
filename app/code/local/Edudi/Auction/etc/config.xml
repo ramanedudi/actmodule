@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Edudi_Auction>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
         </Edudi_Auction>
     </modules>
     <frontend>
@@ -23,6 +23,17 @@
             </updates>
         </layout>
     </frontend>
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <edudi_auction before="Mage_Adminhtml">Edudi_Auction_Adminhtml</edudi_auction>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
     <adminhtml>
         <events>
             <catalog_product_save_before>
@@ -63,6 +74,9 @@
                     <bid>
                         <table>edudi_auction_bids</table>
                     </bid>
+                    <mapping>
+                        <table>edudi_auction_bid_increment</table>
+                    </mapping>
                 </entities>
             </edudi_auction_resource>
         </models>

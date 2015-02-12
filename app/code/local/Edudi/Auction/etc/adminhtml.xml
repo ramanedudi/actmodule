@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <menu>
+        <auctionmapping>
+            <title>Auction</title>
+            <sort_order>100</sort_order>
+            <children>
+                <auct_mapping>
+                    <title>Increment Mapping</title>
+                    <sort_oder>1</sort_oder>
+                    <action>adminhtml/mapping</action>
+                </auct_mapping>
+            </children>
+        </auctionmapping>
+    </menu>
+    <acl>
+        <resources>
+            <admin>
+                <children>
+                    <auctionmapping translate="title" module="edudi_auction">
+                        <title>Auction</title>
+                        <sort_order>-100</sort_order>
+                        <children>
+                            <auct_mapping translate="title">
+                                <title>Increment Mapping</title>
+                                <sort_order>1</sort_order>
+                            </auct_mapping>
+                        </children>
+                    </auctionmapping>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>
