@@ -14,6 +14,7 @@ if (!Mage::helper('customer')->isLoggedIn()) {
 }
 ?>
 <?php $_product = $this->getProduct(); ?>
+<?php $suggestedPrice = $auctionHelper->getSuggestedPrice($_product->getPrice()); ?>
 <script type="text/javascript">
     var optionsPrice = new Product.OptionsPrice(<?php echo $this->getJsonConfig() ?>);
 </script>
@@ -54,7 +55,8 @@ if (!Mage::helper('customer')->isLoggedIn()) {
             			</li>
             			<li>
 						<input type="text" name="bidamount" id="qty" maxlength="12" title="<?php echo $this->__('Bid Amount') ?>" class="input-text qty" />
-						<span>Enter <span id="new_bid_price"><?php echo Mage::helper('core')->currency(($_product->getPrice() + 25), true, false); ?></span> or more</span>
+						<span>Enter <span id="new_bid_price"><?php echo Mage::helper('core')->currency($suggestedPrice, true, false); ?></span> or more</span>
+						<input type="hidden" id="suggested_bid_price" value="<?php echo $suggestedPrice; ?>" />
 						</li>
 						<li>
 							<?php $buttonTitle = $this->__('Place Bid'); ?>
@@ -151,6 +153,10 @@ if (!Mage::helper('customer')->isLoggedIn()) {
 
 
         productAddToCartForm.submitAjax = function(button, url) {
+            if (jQuery('#qty').val() < jQuery('#suggested_bid_price').val()) {
+				alert("	Enter $" + jQuery('#suggested_bid_price').val() + " or more");
+				return false;
+            }
             jQuery('#blackscreen').show();
             jQuery('#ajaxloader').show();
         	if (this.validator.validate()) {
@@ -178,13 +184,18 @@ if (!Mage::helper('customer')->isLoggedIn()) {
 			jQuery('#blackscreen').hide();
         });
 
-        <?php $date = strtotime($_product->getAuctionEndTime()) * 1000; ?>
+        <?php
+		$date = strtotime($_product->getAuctionEndTime()) * 1000; ?>
         var newYear = new Date();
         newYear = new Date(<?php echo $date; ?>);
         jQuery('#countdown').countdown({until: newYear});
 
         function confirmBid(formid)
         {
+        	if (jQuery('#confirmbidamount').val() < jQuery('#suggested_bid_price').val()) {
+				alert("	Enter $" + jQuery('#suggested_bid_price').val() + " or more");
+				return false;
+            }
         	jQuery('#ajaxloader').show();
             form = jQuery('#'+formid);
         		new Ajax.Request(form.attr('action'), {
@@ -233,6 +244,7 @@ if (!Mage::helper('customer')->isLoggedIn()) {
       			var json = transport.responseText.evalJSON();
       			$('current_bid_price').update(json.price);
       			$('new_bid_price').update(json.bidprice);
+      			jQuery('#suggested_bid_price').val(json.suggestedprice);
   			  },
   			  onComplete: function() { setTimeout(checkBiddingUpdates, 2000); }
   			});
@@ -301,11 +313,14 @@ if (!Mage::helper('customer')->isLoggedIn()) {
 	background-image: url(<?php echo $this->getSkinUrl('images/ajax-loader.gif'); ?>);
     background-position: center center;
     background-repeat: no-repeat;
-    height: 188px;
-    width: 260px;
+    height: 140px;
+    width: 140px;
     position: absolute;
     left: 35%;
     z-index: 9999;
     display: none;
+    border: 1px solid #ccc;
+    border-radius: 70px;
+    background-color: #fff;
 }
 </style>

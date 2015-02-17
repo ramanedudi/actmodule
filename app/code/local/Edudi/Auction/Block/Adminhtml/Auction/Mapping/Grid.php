@@ -45,4 +45,9 @@ class Edudi_Auction_Block_Adminhtml_Auction_Mapping_Grid extends Mage_Adminhtml_
 	{
 		return $this->getUrl('*/*/grid', array('_current'=>true));
 	}
+
+	public function getRowUrl($row)
+	{
+		return $this->getUrl('*/*/edit', array('id' => $row->getId()));
+	}
 }

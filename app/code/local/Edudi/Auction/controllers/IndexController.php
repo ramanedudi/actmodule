@@ -97,9 +97,10 @@ class Edudi_Auction_IndexController extends Mage_Core_Controller_Front_Action
 			$result = array();
 
 			$product = Mage::getModel('catalog/product')->load($productId);
+			$suggestedPrice = Mage::helper('edudi_auction')->getSuggestedPrice($product->getPrice());
 			$result['price'] = Mage::helper('core')->currency($product->getPrice(), true, false);
-			$result['bidprice'] = Mage::helper('core')->currency(($product->getPrice() + 25), true, false);
-
+			$result['bidprice'] = Mage::helper('core')->currency($suggestedPrice, true, false);
+			$result['suggestedprice'] = $suggestedPrice;
 			echo json_encode($result);
 		}
 	}

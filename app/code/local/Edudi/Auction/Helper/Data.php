@@ -25,4 +25,20 @@ class Edudi_Auction_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		return Mage::getUrl('eauction/index/getUpdates');
 	}
+
+	public function getSuggestedPrice($price)
+	{
+		$collection = Mage::getModel('edudi_auction/mapping')->getCollection()
+			->addFieldToFilter('bid_amount', array('lt' => $price))
+			->setOrder('bid_amount', 'DESC')
+			->setPageSize(1);
+
+		$data = $collection->getFirstItem();
+
+		if ($data) {
+			return ($price + $data->getIncrementAmount());
+		}
+
+		return ($price + 25);
+	}
 }
