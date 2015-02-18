@@ -72,6 +72,7 @@ class Edudi_Auction_IndexController extends Mage_Core_Controller_Front_Action
 	{
 		if (!Mage::helper('customer')->isLoggedIn()) {
 			$returnUrl = Mage::getUrl('customer/account');
+			Mage::getSingleton('customer/session')->setBeforeAuthUrl(Mage::helper('core/url')->getCurrentUrl());
 			Mage::getSingleton('customer/session')->addNotice("Please login to place Bid.");
 			echo json_encode($returnUrl); exit;
 		}
@@ -97,11 +98,46 @@ class Edudi_Auction_IndexController extends Mage_Core_Controller_Front_Action
 			$result = array();
 
 			$product = Mage::getModel('catalog/product')->load($productId);
+
+			$bidEndTime = strtotime($product->getAuctionEndTime());
+			$currentTime = strtotime(date('d-m-Y H:i:s'));
+
+			$result['isallowed'] = false;
+
+			if ($bidEndTime > $currentTime && $product->getIsBiddingAllowed()) {
+				$result['isallowed'] = true;
+			} else {
+				Mage::helper('edudi_auction')->disableAuction($product);
+			}
+
 			$suggestedPrice = Mage::helper('edudi_auction')->getSuggestedPrice($product->getPrice());
 			$result['price'] = Mage::helper('core')->currency($product->getPrice(), true, false);
 			$result['bidprice'] = Mage::helper('core')->currency($suggestedPrice, true, false);
 			$result['suggestedprice'] = $suggestedPrice;
 			echo json_encode($result);
 		}
+	}
+
+	public function getBidWinnersAction()
+	{
+		/*$bidModel = Mage::getModel('edudi_auction/bid');
+		$collection = $bidModel->getCollection()
+						->addFieldToFilter('status', 0)
+						->setOrder('created_at', 'DESC');
+		$collection->getSelect()
+			->join(array('prod' => 'catalog_product_entity_varchar'),'main_table.entity_id = prod.entity_id AND main_table.bid_id = prod.value')
+			->join(array('prodtime' => 'catalog_product_entity_varchar'),'main_table.entity_id = prodtime.entity_id AND prodtime.attribute_id=');
+		//auction_end_time*/
+		$collection = Mage::getModel('catalog/product')->getCollection()
+			->addAttributeToSelect('*')
+			->addAttributeToFilter('auction_end_time', array('lt' => date('d-m-Y H:i:s')))
+			->addAttributeToFilter('enable_auction', 1)
+			->addAttributeToFilter('is_bidding_allowed', 1);
+		echo $collection->getSelect();
+		$collection->getSelect()
+		->join(array('bid' => 'edudi_auction_bids'),'e.entity_id = bid.entity_id AND e.auction_bid_id = bid.bid_id');
+
+
+
 	}
 }

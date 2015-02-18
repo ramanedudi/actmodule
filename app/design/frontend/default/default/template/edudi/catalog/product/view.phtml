@@ -41,11 +41,13 @@ if (!Mage::helper('customer')->isLoggedIn()) {
             <?php echo $this->getChildHtml('alert_urls') ?>
             <?php //echo $this->getChildHtml('product_type_data') ?>
             <?php echo $this->getChildHtml('extrahint') ?>
-			<div class="timer-count">
-			<span>Time Left : </span>
-			<span id="countdown"></span>
-			</div>
-            <?php if (!$this->hasOptions()):?>
+            <?php if ($auctionHelper->isAllowedBidding($_product)) : ?>
+				<div class="timer-count">
+					<span>Time Left : </span>
+					<span id="countdown"></span>
+				</div>
+            	<?php if (!$this->hasOptions()):?>
+
                 <div class="add-to-box">
                     <?php if($_product->isSaleable()): ?>
                     	<li>
@@ -67,12 +69,16 @@ if (!Mage::helper('customer')->isLoggedIn()) {
                     <?php echo $this->getChildHtml('addto') ?>
                     </li>
                 </div>
+
                 <?php echo $this->getChildHtml('extra_buttons') ?>
-            <?php elseif (!$_product->isSaleable()): ?>
+            	<?php elseif (!$_product->isSaleable()): ?>
                 <div class="add-to-box">
                     <?php echo $this->getChildHtml('addto') ?>
                 </div>
-            <?php endif; ?>
+            	<?php endif; ?>
+			<?php else : ?>
+				<div class="item-sold">SOLD</div>
+			<?php endif; ?>
 
             <?php if ($_product->getShortDescription()):?>
                 <div class="short-description">
@@ -184,12 +190,6 @@ if (!Mage::helper('customer')->isLoggedIn()) {
 			jQuery('#blackscreen').hide();
         });
 
-        <?php
-		$date = strtotime($_product->getAuctionEndTime()) * 1000; ?>
-        var newYear = new Date();
-        newYear = new Date(<?php echo $date; ?>);
-        jQuery('#countdown').countdown({until: newYear});
-
         function confirmBid(formid)
         {
         	if (jQuery('#confirmbidamount').val() < jQuery('#suggested_bid_price').val()) {
@@ -235,20 +235,33 @@ if (!Mage::helper('customer')->isLoggedIn()) {
     			  onFailure: function() { alert('Something went wrong...'); }
     		});
         }
+        <?php if ($auctionHelper->isAllowedBidding($_product)) : ?>
 
-        (function checkBiddingUpdates() {
-        	new Ajax.Request('<?php echo $auctionHelper->getBiddingUpdates(); ?>', {
-  			  method:'post',
-  			  parameters: {product_id:'<?php echo $_product->getId(); ?>'},
-  			  onSuccess: function(transport) {
-      			var json = transport.responseText.evalJSON();
-      			$('current_bid_price').update(json.price);
-      			$('new_bid_price').update(json.bidprice);
-      			jQuery('#suggested_bid_price').val(json.suggestedprice);
-  			  },
-  			  onComplete: function() { setTimeout(checkBiddingUpdates, 2000); }
-  			});
-        })();
+        	<?php $date = strtotime($_product->getAuctionEndTime()) * 1000; ?>
+	        var newYear = new Date();
+	        newYear = new Date(<?php echo $date; ?>);
+	        jQuery('#countdown').countdown({until: newYear});
+
+	        (function checkBiddingUpdates() {
+	        	new Ajax.Request('<?php echo $auctionHelper->getBiddingUpdates(); ?>', {
+	  			  method:'post',
+	  			  parameters: {product_id:'<?php echo $_product->getId(); ?>'},
+	  			  onSuccess: function(transport) {
+	      			var json = transport.responseText.evalJSON();
+
+	      			$('current_bid_price').update(json.price);
+	      			$('new_bid_price').update(json.bidprice);
+	      			jQuery('#suggested_bid_price').val(json.suggestedprice);
+
+					if (!json.isallowed) {
+		      			alert("Bidding on this product is completed.");
+		      			window.location.reload();
+	      			}
+	  			  },
+	  			  onComplete: function() { setTimeout(checkBiddingUpdates, 2000); }
+	  			});
+	        })();
+        <?php endif; ?>
     //]]>
     </script>
     </div>
@@ -322,5 +335,25 @@ if (!Mage::helper('customer')->isLoggedIn()) {
     border: 1px solid #ccc;
     border-radius: 70px;
     background-color: #fff;
+}
+
+.item-sold {
+    background-color: #e6802a;
+    border-radius: 80px;
+    box-shadow: 2px 1px 4px 2px #ccc;
+    color: #fff;
+    font-family: Georgia;
+    font-size: 18px;
+    font-weight: bold;
+    height: 50px;
+    left: -120px;
+    line-height: 50px;
+    margin: 20px;
+    padding: 20px;
+    position: relative;
+    text-align: center;
+    top: -100px;
+    width: 50px;
+    z-index: 9999;
 }
 </style>

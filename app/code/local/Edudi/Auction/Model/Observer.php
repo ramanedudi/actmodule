@@ -12,4 +12,5 @@ class Edudi_Auction_Model_Observer
 			$product->setAuctionBidId(microtime(true));
 		}
 	}
+
 }

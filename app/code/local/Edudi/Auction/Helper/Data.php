@@ -41,4 +41,29 @@ class Edudi_Auction_Helper_Data extends Mage_Core_Helper_Abstract
 
 		return ($price + 25);
 	}
+
+	public function isAllowedBidding($product=null)
+	{
+		if ($product)
+		{
+			if ($product->getIsBiddingAllowed()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public function disableAuction($product=null)
+	{
+		if ($product) {
+			try {
+				Mage::getModel('edudi_auction/bid')->announceWinner($product);
+				$product->setIsBiddingAllowed(0);
+				$product->save();
+			} catch (Exception $e) {
+				Mage::logException($e);
+			}
+		}
+	}
 }
