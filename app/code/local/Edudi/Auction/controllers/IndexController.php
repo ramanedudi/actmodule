@@ -47,6 +47,7 @@ class Edudi_Auction_IndexController extends Mage_Core_Controller_Front_Action
 						$model->setBidId($bidId);
 						$model->setCreatedAt(date('Y-m-d H:i:s'));
 					}
+					Mage::helper('edudi_auction')->sendOutBidEmail($product, $bidId);
 					$model->save();
 
 					$product->setPrice($bidAmount);
@@ -58,9 +59,7 @@ class Edudi_Auction_IndexController extends Mage_Core_Controller_Front_Action
 					$response['msg'] = "Please place higher Bid Amount.";
 					$response['status'] = false;
 				}
-
-
-
+				
 				echo json_encode($response); exit;
 			} catch(Exception $e) {
 				Mage::logException($e);
@@ -103,7 +102,7 @@ class Edudi_Auction_IndexController extends Mage_Core_Controller_Front_Action
 			$currentTime = strtotime(date('d-m-Y H:i:s'));
 
 			$result['isallowed'] = false;
-
+//Mage::helper('edudi_auction')->disableAuction($product);
 			if ($bidEndTime > $currentTime && $product->getIsBiddingAllowed()) {
 				$result['isallowed'] = true;
 			} else {
@@ -120,24 +119,16 @@ class Edudi_Auction_IndexController extends Mage_Core_Controller_Front_Action
 
 	public function getBidWinnersAction()
 	{
-		/*$bidModel = Mage::getModel('edudi_auction/bid');
-		$collection = $bidModel->getCollection()
-						->addFieldToFilter('status', 0)
-						->setOrder('created_at', 'DESC');
-		$collection->getSelect()
-			->join(array('prod' => 'catalog_product_entity_varchar'),'main_table.entity_id = prod.entity_id AND main_table.bid_id = prod.value')
-			->join(array('prodtime' => 'catalog_product_entity_varchar'),'main_table.entity_id = prodtime.entity_id AND prodtime.attribute_id=');
-		//auction_end_time*/
 		$collection = Mage::getModel('catalog/product')->getCollection()
-			->addAttributeToSelect('*')
+			->addAttributeToSelect('auction_bid_id')
 			->addAttributeToFilter('auction_end_time', array('lt' => date('d-m-Y H:i:s')))
 			->addAttributeToFilter('enable_auction', 1)
 			->addAttributeToFilter('is_bidding_allowed', 1);
-		echo $collection->getSelect();
-		$collection->getSelect()
-		->join(array('bid' => 'edudi_auction_bids'),'e.entity_id = bid.entity_id AND e.auction_bid_id = bid.bid_id');
-
-
-
+		
+		$product = Mage::getModel('catalog/product');
+		foreach ($collection as $_product) {
+			$product->load($_product->getEntityId());
+			Mage::helper('edudi_auction')->disableAuction($product);
+		}
 	}
 }

@@ -12,5 +12,19 @@ class Edudi_Auction_Model_Observer
 			$product->setAuctionBidId(microtime(true));
 		}
 	}
-
+	
+	public function getBidWinners()
+	{
+		$collection = Mage::getModel('catalog/product')->getCollection()
+			->addAttributeToSelect('auction_bid_id')
+			->addAttributeToFilter('auction_end_time', array('lt' => date('d-m-Y H:i:s')))
+			->addAttributeToFilter('enable_auction', 1)
+			->addAttributeToFilter('is_bidding_allowed', 1);
+		
+		$product = Mage::getModel('catalog/product');
+		foreach ($collection as $_product) {
+			$product->load($_product->getEntityId());
+			Mage::helper('edudi_auction')->disableAuction($product);
+		}
+	}
 }

@@ -60,6 +60,9 @@ class Edudi_Auction_Model_Bid extends Mage_Core_Model_Abstract
 					$quote->addProduct($product, new Varien_Object($buyRequest));
 					$quote->collectTotals()->save();
 				}
+				
+				Mage::helper('edudi_auction')->sendWinnerEmailNotification($customer, $product, $data);
+				
 			}
 
 		}

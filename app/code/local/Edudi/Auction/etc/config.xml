@@ -98,5 +98,27 @@
                 </connection>
             </edudi_auction_read>
         </resources>
+        <template>
+	        <email>
+	            <auction_winner_template module="Edudi_Auction">
+	                <label>Edudi Auction Winner Tempalte</label>
+	                <file>auction_winner_email.html</file>
+	                <type>html</type>
+	            </auction_winner_template>
+	            <auction_outbid_template module="Edudi_Auction">
+                    <label>Edudi Auction Outbid Tempalte</label>
+                    <file>auction_outbid_email.html</file>
+                    <type>html</type>
+                </auction_outbid_template>
+	        </email>
+	    </template>
     </global>
+    <crontab>
+        <jobs>
+            <announce_auction_winners>
+                <schedule><cron_expr>*/5 * * * *</cron_expr></schedule>
+                <run><model>edudi_auction/observer::getBidWinners</model></run>
+            </announce_auction_winners>
+        </jobs>
+    </crontab>
 </config>
