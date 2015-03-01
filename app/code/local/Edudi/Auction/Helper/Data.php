@@ -29,8 +29,8 @@ class Edudi_Auction_Helper_Data extends Mage_Core_Helper_Abstract
 	public function getSuggestedPrice($price)
 	{
 		$collection = Mage::getModel('edudi_auction/mapping')->getCollection()
-			->addFieldToFilter('bid_amount', array('lt' => $price))
-			->setOrder('bid_amount', 'DESC')
+			->addFieldToFilter('bidding_amount_from', array('lt' => $price))
+			->setOrder('bidding_amount_from', 'DESC')
 			->setPageSize(1);
 
 		$data = $collection->getFirstItem();
