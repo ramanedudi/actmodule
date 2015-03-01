@@ -65,6 +65,7 @@ class Edudi_Auction_Adminhtml_MappingController extends Mage_Adminhtml_Controlle
 				$mapModel = Mage::getModel('edudi_auction/mapping');
 
 				$mapModel->setId($this->getRequest()->getParam('id'))
+				->setBiddingAmountFrom($postData['bidding_amount_from'])
 				->setBidAmount($postData['bid_amount'])
 				->setIncrementAmount($postData['increment_amount'])
 				->save();
@@ -102,5 +103,4 @@ class Edudi_Auction_Adminhtml_MappingController extends Mage_Adminhtml_Controlle
 		}
 		$this->_redirect('*/*/');
 	}
-
 }

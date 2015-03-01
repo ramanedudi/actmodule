@@ -15,8 +15,15 @@ class Edudi_Auction_Block_Adminhtml_Auction_Edit_Form extends Mage_Adminhtml_Blo
 
 		$fieldset = $form->addFieldset('edudi_auction_form', array('legend'=>Mage::helper('edudi_auction')->__('Item information')));
 
+		$fieldset->addField('bidding_amount_from', 'text', array(
+				'label'     => Mage::helper('edudi_auction')->__('Bid Amount From'),
+				'class'     => 'required-entry',
+				'required'  => true,
+				'name'      => 'bidding_amount_from',
+		));
+		
 		$fieldset->addField('bid_amount', 'text', array(
-				'label'     => Mage::helper('edudi_auction')->__('Bid Amount'),
+				'label'     => Mage::helper('edudi_auction')->__('Bid Amount To'),
 				'class'     => 'required-entry',
 				'required'  => true,
 				'name'      => 'bid_amount',

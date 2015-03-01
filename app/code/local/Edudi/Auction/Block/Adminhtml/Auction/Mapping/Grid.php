@@ -28,8 +28,13 @@ class Edudi_Auction_Block_Adminhtml_Auction_Mapping_Grid extends Mage_Adminhtml_
 				'index'  => 'id'
 		));
 
+		$this->addColumn('bidding_amount_from', array(
+				'header' => $helper->__('Bid Amount From'),
+				'index'  => 'bidding_amount_from'
+		));
+		
 		$this->addColumn('bid_amount', array(
-				'header' => $helper->__('Bid Amount'),
+				'header' => $helper->__('Bid Amount To'),
 				'index'  => 'bid_amount'
 		));
 

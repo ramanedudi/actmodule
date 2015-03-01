@@ -10,6 +10,11 @@
                     <sort_oder>1</sort_oder>
                     <action>adminhtml/mapping</action>
                 </auct_mapping>
+                <auct_product>
+                    <title>Auction Products</title>
+                    <sort_oder>1</sort_oder>
+                    <action>adminhtml/product</action>
+                </auct_product>
             </children>
         </auctionmapping>
     </menu>
@@ -25,6 +30,10 @@
                                 <title>Increment Mapping</title>
                                 <sort_order>1</sort_order>
                             </auct_mapping>
+                            <auct_product translate="title">
+                                <title>Auction Products</title>
+                                <sort_order>1</sort_order>
+                            </auct_product>
                         </children>
                     </auctionmapping>
                 </children>
